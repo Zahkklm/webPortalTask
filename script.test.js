@@ -54,6 +54,21 @@ class MockDataTransfer {
 global.DataTransfer = MockDataTransfer;
 global.File = MockFile;
 
+// Mock FileReader
+class MockFileReader {
+    constructor() {
+        this.onload = null; // Placeholder for the onload
+        this.result = '';
+    }
+
+    readAsDataURL(file) {
+        this.result = "data:image/png;base64,dummybase64"; // Set result as if a file has been read
+        if (this.onload) {
+            this.onload({ target: { result: this.result } }); // Call onload with the result
+        }
+    }
+}
+
 beforeAll(() => {
     jest.useFakeTimers();
     // Load HTML content into jsdom
@@ -109,12 +124,12 @@ beforeAll(() => {
 
     window.handleImageSelect = jest.fn((event) => {
         const file = event.target.files[0];
-        const reader = new FileReader();
+        const reader = new MockFileReader(); // Use the mocked FileReader
         reader.onload = (ev) => {
             document.getElementById("selectedImage").src = ev.target.result;
             document.getElementById("selectedImage").style.display = "block";
         };
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(file); // Initiates the read call
     });
 
     // Add event listeners to match the actual script
@@ -140,8 +155,7 @@ function simulateImageSelection(inputId) {
     });
 
     // Create and dispatch the change event
-    const changeEvent = document.createEvent('Event');
-    changeEvent.initEvent('change', true, true);
+    const changeEvent = new window.Event('change', { bubbles: true, cancelable: true });
     imageInput.dispatchEvent(changeEvent);
 }
 
@@ -156,5 +170,55 @@ describe("Task List Application", () => {
         // Check that handleImageSelect was called
         expect(window.handleImageSelect).toHaveBeenCalled();
         expect(document.getElementById("selectedImage").style.display).toBe("block");
+    });
+
+    test("should show error message when no tasks are available", () => {
+        const errorMessage = document.getElementById("errorMessage");
+        const fetchTasks = jest.fn(() => {
+            errorMessage.style.display = "block";
+            errorMessage.textContent = "No tasks available.";
+        });
+
+        fetchTasks();
+
+        expect(errorMessage.style.display).toBe("block");
+        expect(errorMessage.textContent).toBe("No tasks available.");
+    });
+
+    test("should display tasks when available", () => {
+        const taskBody = document.getElementById("taskBody");
+        const tasks = [
+            { task: "Task 1", title: "Title 1", description: "Description 1", colorCode: "#FF5733" },
+            { task: "Task 2", title: "Title 2", description: "Description 2", colorCode: "#33FF57" }
+        ];
+
+        tasks.forEach(task => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${task.task}</td>
+                <td>${task.title}</td>
+                <td>${task.description}</td>
+                <td style="background-color:${task.colorCode};">${task.colorCode}</td>
+            `;
+            taskBody.appendChild(row);
+        });
+
+        expect(taskBody.children.length).toBe(2);
+        expect(taskBody.children[0].cells[0].textContent).toBe("Task 1");
+        expect(taskBody.children[1].cells[0].textContent).toBe("Task 2");
+    });
+
+    test("should open and close modal when buttons are clicked", () => {
+        const modal = document.getElementById("modal");
+        const openModalButton = document.getElementById("openModal");
+        const closeModalButton = document.querySelector(".close");
+
+        openModalButton.click();
+        expect(window.openModal).toHaveBeenCalled();
+        expect(modal.style.display).toBe("block");
+
+        closeModalButton.click();
+        expect(window.closeModal).toHaveBeenCalled();
+        expect(modal.style.display).toBe("none");
     });
 });
