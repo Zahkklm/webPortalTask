@@ -1,7 +1,5 @@
 # webPortalTask
 
-![Image](tasklistpic.png)
-
 Steps to run the web portal task
 
 1. Clone the repository
