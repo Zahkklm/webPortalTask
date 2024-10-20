@@ -1,5 +1,7 @@
 # webPortalTask
 
+![Image](tasklistpic.png)
+
 Steps to run the web portal task
 
 1. Clone the repository
@@ -23,13 +25,13 @@ docker run -p 8080:80 webportaltask
 ## Unit Tests
 To run the unit tests, run the following command:
 
-Frontend Unit Tests: (npm is required)
+Frontend Unit Tests: ([npm](https://nodejs.org/en/download) is required)
 ```bash
 npm install
 npm run test
 ```
 
-Backend Unit Tests: (composer is required)
+Backend Unit Tests: ([composer](https://getcomposer.org/download/) is required)
 ```bash
 composer install
 ./vendor/bin/phpunit BackendTest.php
