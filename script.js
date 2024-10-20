@@ -1,22 +1,27 @@
 document.addEventListener("DOMContentLoaded", () => {
     const searchInput = document.getElementById("search");
     const taskBody = document.getElementById("taskBody");
+    const errorMessage = document.getElementById("errorMessage");  // Error message div
     const modal = document.getElementById("modal");
     const closeModal = document.querySelector(".close");
     const imageInput = document.getElementById("imageInput");
     const selectedImage = document.getElementById("selectedImage");
 
-    const fetchTasks = () => {
-        fetch('backend.php')
-            .then(res => res.text())
-            .then(rawResponse => {
-                console.log('Raw Response:', rawResponse);
-                try {
-                    const tasks = JSON.parse(rawResponse);
-                    console.log('Parsed Data:', tasks);
+    const displayError = (message) => {
+        errorMessage.style.display = "block";
+        errorMessage.textContent = message;
+    };
+
+    const fetchTasks = (query = '') => {
+        fetch(`backend.php?search=${query}`)
+            .then(res => res.json())
+            .then(data => {
+                errorMessage.style.display = "none";  // Hide error message on success
+
+                if (Array.isArray(data) && data.length > 0) {
                     taskBody.innerHTML = '';
 
-                    tasks.forEach(task => {
+                    data.forEach(task => {
                         const row = document.createElement('tr');
                         row.innerHTML = `
                             <td>${task.task}</td>
@@ -26,21 +31,16 @@ document.addEventListener("DOMContentLoaded", () => {
                         `;
                         taskBody.appendChild(row);
                     });
-                } catch (err) {
-                    console.error('Error parsing JSON:', err);
+                } else {
+                    displayError('No tasks available.');
                 }
             })
-            .catch(err => console.error('Error fetching tasks:', err));
+            .catch(err => displayError('Error fetching tasks: ' + err.message));
     };
 
     searchInput.addEventListener("input", () => {
         const query = searchInput.value.toLowerCase();
-        Array.from(taskBody.getElementsByTagName("tr")).forEach(row => {
-            const match = Array.from(row.getElementsByTagName("td")).some(cell =>
-                cell.innerText.toLowerCase().includes(query)
-            );
-            row.style.display = match ? "" : "none";
-        });
+        fetchTasks(query);
     });
 
     document.getElementById("openModal").onclick = () => modal.style.display = "block";
@@ -65,5 +65,5 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     fetchTasks();
-    setInterval(fetchTasks, 3600000);
+    setInterval(fetchTasks, 3600000);  // Refresh every 60 minutes
 });
