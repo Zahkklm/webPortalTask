@@ -1,29 +1,22 @@
 document.addEventListener("DOMContentLoaded", () => {
     const searchInput = document.getElementById("search");
     const taskBody = document.getElementById("taskBody");
-    const errorMessage = document.getElementById("errorMessage"); // Error message div
     const modal = document.getElementById("modal");
     const closeModal = document.querySelector(".close");
     const imageInput = document.getElementById("imageInput");
     const selectedImage = document.getElementById("selectedImage");
 
-    // Function to display error messages
-    const displayError = (message) => {
-        errorMessage.style.display = "block";
-        errorMessage.textContent = message;
-    };
+    const fetchTasks = () => {
+        fetch('backend.php')
+            .then(res => res.text())
+            .then(rawResponse => {
+                console.log('Raw Response:', rawResponse);
+                try {
+                    const tasks = JSON.parse(rawResponse);
+                    console.log('Parsed Data:', tasks);
+                    taskBody.innerHTML = '';
 
-    // Function to fetch tasks
-    const fetchTasks = (query = '') => {
-        fetch(`backend.php?search=${query}`)
-            .then(res => res.json())
-            .then(data => {
-                errorMessage.style.display = "none"; // Hide error message on success
-
-                if (Array.isArray(data) && data.length > 0) {
-                    taskBody.innerHTML = ''; // Clear existing tasks
-
-                    data.forEach(task => {
+                    tasks.forEach(task => {
                         const row = document.createElement('tr');
                         row.innerHTML = `
                             <td>${task.task}</td>
@@ -33,50 +26,44 @@ document.addEventListener("DOMContentLoaded", () => {
                         `;
                         taskBody.appendChild(row);
                     });
-                } else {
-                    displayError('No tasks available.'); // Show error if no tasks
+                } catch (err) {
+                    console.error('Error parsing JSON:', err);
                 }
             })
-            .catch(err => displayError('Error fetching tasks: ' + err.message)); // Handle fetch errors
+            .catch(err => console.error('Error fetching tasks:', err));
     };
 
-    // Event listener for searching tasks
     searchInput.addEventListener("input", () => {
         const query = searchInput.value.toLowerCase();
-        fetchTasks(query); // Fetch tasks based on input
+        Array.from(taskBody.getElementsByTagName("tr")).forEach(row => {
+            const match = Array.from(row.getElementsByTagName("td")).some(cell =>
+                cell.innerText.toLowerCase().includes(query)
+            );
+            row.style.display = match ? "" : "none";
+        });
     });
 
-    // Open the modal when the button is clicked
-    document.getElementById("openModal").onclick = () => {
-        modal.style.display = "block"; // Open modal
+    document.getElementById("openModal").onclick = () => modal.style.display = "block";
+    closeModal.onclick = () => modal.style.display = "none";
+
+    imageInput.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                selectedImage.src = ev.target.result;
+                selectedImage.style.display = "block";
+            };
+            reader.readAsDataURL(file);
+        }
     };
 
-    // Close the modal when the close button is clicked
-    closeModal.onclick = () => {
-        modal.style.display = "none"; // Close modal
-    };
-
-    // Close the modal when clicking outside of it
     window.onclick = (e) => {
         if (e.target === modal) {
-            modal.style.display = "none"; // Close modal
+            modal.style.display = "none";
         }
     };
 
-    // Handle image input change to display selected image
-    imageInput.onchange = (e) => {
-        const file = e.target.files[0]; // Get the selected file
-        if (file) {
-            const reader = new FileReader(); // Create a FileReader
-            reader.onload = (ev) => {
-                selectedImage.src = ev.target.result; // Set image source
-                selectedImage.style.display = "block"; // Show the selected image
-            };
-            reader.readAsDataURL(file); // Read the file as a data URL
-        }
-    };
-
-    // Fetch tasks on page load
     fetchTasks();
-    setInterval(fetchTasks, 3600000); // Refresh tasks every 60 minutes
+    setInterval(fetchTasks, 3600000);
 });
