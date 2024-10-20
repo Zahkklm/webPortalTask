@@ -12,13 +12,19 @@ git clone https://github.com/Zahkklm/webPortalTask.git
 cd webPortalTask
 ```
 
-3. Build and run the docker image
+3. Create a `.env` file and set the following variables:
+```
+API_USER=365
+API_PASS=1
+API_AUTH_HEADER=QVBJX0V4cGxvcmVyOjEyMzQ1NmlzQUxhbWVQYXNz
+```
+4. Build and run the docker image
 ```bash
 docker build -t webportaltask .
 docker run -p 8080:80 webportaltask
 ```
 
-4. Open the browser and go to http://localhost:8080/
+5. Open the browser and go to http://localhost:8080/
 
 ## Unit Tests
 To run the unit tests, run the following command:
