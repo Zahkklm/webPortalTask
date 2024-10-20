@@ -1,5 +1,5 @@
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Roboto', sans-serif; 
     margin: 0;
     padding: 20px;
     background-color: #f4f4f4;
@@ -95,3 +95,23 @@ th {
 tr:hover {
     background-color: #f5f5f5;
 }
+
+#taskTable {
+    width: 100%; 
+    border-collapse: collapse; 
+}
+
+#taskTable th, #taskTable td {
+    text-align: left; 
+    padding: 8px; 
+}
+
+#taskTable th {
+    background-color: #f2f2f2;
+}
+
+/* Fixed widths for each column */
+#taskTable th:nth-child(1), #taskTable td:nth-child(1) { width: 15%; } /* Task */
+#taskTable th:nth-child(2), #taskTable td:nth-child(2) { width: 15%; } /* Title */
+#taskTable th:nth-child(3), #taskTable td:nth-child(3) { width: 50%; } /* Description */
+#taskTable th:nth-child(4), #taskTable td:nth-child(4) { width: 10%; } /* Color Code */
